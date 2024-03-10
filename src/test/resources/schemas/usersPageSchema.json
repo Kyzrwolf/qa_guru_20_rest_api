@@ -1,0 +1,52 @@
+{
+  "title": "usersPage",
+  "description": "Auto generated JSON schema based on the 'usersPage' file",
+  "type": "object",
+  "properties": {
+    "per_page": {
+      "type": "number"
+    },
+    "total": {
+      "type": "number"
+    },
+    "data": {
+      "type": "array",
+      "items": {
+        "properties": {
+          "last_name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "number"
+          },
+          "avatar": {
+            "type": "string"
+          },
+          "first_name": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "page": {
+      "type": "number"
+    },
+    "total_pages": {
+      "type": "number"
+    },
+    "support": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

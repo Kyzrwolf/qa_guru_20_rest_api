@@ -1,0 +1,57 @@
+plugins {
+    id 'java'
+    id'io.qameta.allure' version '2.11.2'
+
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+allure {
+    report {
+        version.set("2.19.0")
+    }
+    adapter { // отвечает за появление папочки build/allure-results
+        aspectjWeaver.set(true) //обработка аннотации @Step
+        frameworks {
+            junit5 { //название фреймворка
+                adapterVersion.set("2.19.0") //версия интеграции фреймворка и Allure
+            }
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation(
+            'org.junit.jupiter:junit-jupiter-api:5.10.2',
+            'org.slf4j:slf4j-simple:2.0.9',
+            'io.rest-assured:rest-assured:5.4.0',
+            'io.rest-assured:json-path:5.4.0',
+            'io.rest-assured:json-schema-validator:5.4.0',
+            'org.hamcrest:hamcrest:2.2'
+    )
+
+    testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.9.2')
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+    systemProperties(System.getProperties())
+
+    testLogging {
+        lifecycle {
+            events "started", "skipped", "failed", "standard_error", "standard_out"
+            exceptionFormat "short"
+        }
+    }
+}
+
+
+
+
+
+

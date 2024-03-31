@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id'io.qameta.allure' version '2.11.2'
+    id 'io.freefair.lombok' version '6.3.0'
 
 }
 
@@ -32,6 +33,7 @@ dependencies {
             'io.rest-assured:rest-assured:5.4.0',
             'io.rest-assured:json-path:5.4.0',
             'io.rest-assured:json-schema-validator:5.4.0',
+            'io.qameta.allure:allure-rest-assured:2.21.0',
             'org.hamcrest:hamcrest:2.2'
     )
 

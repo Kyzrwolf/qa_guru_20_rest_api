@@ -1,14 +1,16 @@
 package in.regres.tests;
 
-
+import in.regres.models.*;
 import io.qameta.allure.Feature;
 import io.qameta.allure.Story;
 import io.restassured.RestAssured;
-import io.restassured.response.Response;
 import org.junit.jupiter.api.*;
 
+import java.util.List;
+
+import static in.regres.specs.Specs.*;
+import static io.qameta.allure.Allure.step;
 import static io.restassured.RestAssured.*;
-import static io.restassured.http.ContentType.JSON;
 import static io.restassured.module.jsv.JsonSchemaValidator.matchesJsonSchemaInClasspath;
 import static org.hamcrest.MatcherAssert.*;
 import static org.hamcrest.Matchers.*;
@@ -26,104 +28,102 @@ public class RegresInTests {
     @Test
     @DisplayName("Проверка наличия зарегистрированного пользователя Tobias Funke")
     public void userIsRegisteredTest() {
-        Response response = given()
-                .log().uri()
-                .log().method()
-        .when()
-                .get("users?page=2")
-        .then()
-                .log().status()
-                .log().body(true)
-                .body(matchesJsonSchemaInClasspath("schemas/usersPageSchema.json"))
-                .statusCode(200)
-                .extract().response();
 
-        assertThat(response.path("data[2].id"), equalTo(9));
-        assertThat(response.path("data[2].email"), equalTo("tobias.funke@reqres.in"));
-        assertThat(response.path("data[2].first_name"), equalTo("Tobias"));
-        assertThat(response.path("data[2].last_name"), equalTo("Funke"));
-        assertThat(response.path("data[2].avatar"), equalTo("https://reqres.in/img/faces/9-image.jpg"));
+        RegisteredUsersListResponseModel response = step("Make request", () ->
+                given(defaultGetRequestSpec)
+                        .when()
+                        .get("users?page=2")
+                        .then()
+                        .spec(defaultResponseSpec)
+                        .body(matchesJsonSchemaInClasspath("schemas/usersPageSchema.json"))
+                        .extract().as(RegisteredUsersListResponseModel.class));
+
+        List<RegisteredUsersListResponseModel.Data> userDataList = response.getData();
+        RegisteredUsersListResponseModel.Data tobiasData = userDataList.get(2);
+
+        step("Check response", () -> {
+            assertThat(tobiasData.getId(), equalTo(9));
+            assertThat(tobiasData.getEmail(), equalTo("tobias.funke@reqres.in"));
+            assertThat(tobiasData.getFirstName(), equalTo("Tobias"));
+            assertThat(tobiasData.getLastName(), equalTo("Funke"));
+            assertThat(tobiasData.getAvatar(), equalTo("https://reqres.in/img/faces/9-image.jpg"));
+        });
     }
 
     @Test
     @DisplayName("Проверка создания пользователя")
     public void createUserTest() {
-        String body = "{ \"name\": \"Neo\", \"job\": \"chosen One\" }";
+        CreateUserRequestModel body = new CreateUserRequestModel();
+        body.setName("Neo");
+        body.setJob("Chosen One");
 
-        Response response = given()
-                .log().uri()
-                .log().method()
-                .log().body()
-                .contentType(JSON)
-                .body(body)
-        .when()
-                .post("users")
-        .then()
-                .log().status()
-                .log().body(true)
-                .statusCode(201)
-                .extract().response();
+        CreateUserResponseModel response = step("Make request", () ->
+                given(defaultPostRequestSpec)
+                        .body(body)
+                        .when()
+                        .post("users")
+                        .then()
+                        .spec(createUserResponseSpec)
+                        .extract().as(CreateUserResponseModel.class));
 
-        assertThat(response.path("name"), equalTo("Neo"));
-        assertThat(response.path("job"), equalTo("chosen One"));
+        step("Check response", () -> {
+            assertThat(response.getName(), equalTo("Neo"));
+            assertThat(response.getJob(), equalTo("Chosen One"));
+        });
     }
 
     @Test
     @DisplayName("Проверка возврата кода 404 при обращении за несуществующим пользователем")
     public void userNotFoundTest() {
-        given()
-                .log().uri()
-                .log().method()
-                .when()
-                .get("users/23")
-                .then()
-                .log().status()
-                .statusCode(404);
+        step("Make request", () ->
+                given(defaultGetRequestSpec)
+                        .when()
+                        .get("users/23")
+                        .then()
+                        .spec(notFoundResponseSpec)
+                        .log().status()
+                        .statusCode(404));
     }
 
     @Test
     @DisplayName("Проверка успешного логина")
     public void successfulLoginTest() {
-        String body = "{ \"email\": \"eve.holt@reqres.in\", \"password\": \"cityslicka\" }";
+        LoginRequestModel body = new LoginRequestModel();
+        body.setEmail("eve.holt@reqres.in");
+        body.setPassword("cityslicka");
 
-        Response response = given()
-                .log().uri()
-                .log().method()
-                .log().body()
-                .contentType(JSON)
-                .body(body)
-                .when()
-                .post("login")
-                .then()
-                .log().status()
-                .log().body(true)
-                .statusCode(200)
-                .extract().response();
+        LoginResponseModel response = step("Make request", () ->
+                given(defaultPostRequestSpec)
+                        .body(body)
+                        .when()
+                        .post("login")
+                        .then()
+                        .spec(defaultResponseSpec)
+                        .extract().as(LoginResponseModel.class));
 
-        assertThat(response.path("token"), notNullValue());
+        step("Check response", () -> assertThat(response.getToken(), notNullValue()));
     }
 
     @Test
     @DisplayName("Проверка обновления данных пользователя")
     public void updateUserTest() {
-        String body = "{ \"name\": \"Neo\", \"job\": \"chosen One\" }";
+        CreateUserRequestModel body = new CreateUserRequestModel();
+        body.setName("Morpheus");
+        body.setJob("some guy");
 
-        Response response = given()
-                .log().uri()
-                .log().method()
-                .log().body()
-                .contentType(JSON)
-                .body(body)
-                .when()
-                .patch("users/2")
-                .then()
-                .log().status()
-                .log().body(true)
-                .statusCode(200)
-                .extract().response();
+        UpdateUserResponseModel response = step("Make request", () ->
+                given(defaultPostRequestSpec)
+                        .body(body)
+                    .when()
+                        .patch("users/2")
+                    .then()
+                        .spec(defaultResponseSpec)
+                        .extract().as(UpdateUserResponseModel.class));
 
-        assertThat(response.path("name"), equalTo("Neo"));
-        assertThat(response.path("job"), equalTo("chosen One"));
-        assertThat(response.path("updatedAt"), notNullValue());
+        step("Check response", () -> {
+            assertThat(response.getName(), equalTo("Morpheus"));
+            assertThat(response.getJob(), equalTo("some guy"));
+            assertThat(response.getUpdatedAt(), notNullValue());
+        });
     }
 }
